@@ -1,0 +1,19 @@
+
+GET http://localhost:3000/reviews
+###
+POST http://localhost:3000/reviews/addProductIds
+
+####
+POST http://localhost:3000/reviews/addReview
+
+####
+POST http://localhost:3000/reviews/addPhotos
+
+####
+POST http://localhost:3000/reviews/addCharacteristics
+
+####
+POST http://localhost:3000/reviews/addCharNames
+
+####
+PUT http://localhost:3000/reviews/helpful
