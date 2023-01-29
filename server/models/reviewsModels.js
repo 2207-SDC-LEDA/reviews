@@ -21,7 +21,7 @@ const productReviewsSchema = new mongoose.Schema({
       review_id: { type: Number, index: true },
       rating: Number,
       summary: String,
-      recommend: String,
+      recommend: Boolean,
       reported: String,
       response: String,
       body: String,
