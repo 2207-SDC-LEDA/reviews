@@ -280,17 +280,7 @@ router.get('/', async (req, res) => {
     returnObj.count = Number(5);
     returnObj.results = currentDataobj[0].results;
     returnObj.results.splice(count);
-    console.log('here is return Obj', returnObj);
-    // console.log('here is RESULTS Obj', returnObj.results)
-
-    // for (i = 0; i < returnObj.results; i++) {
-    //   var timestamp = returnObj.results[i].date;
-    //   var timestamp = Number(timestamp);
-    //   var date = new Date(timestamp);
-    //   console.log('here is the return arr', returnObj.results[i])
-    //   var final_date = date.toISOString().slice(0, -1) + "0Z";
-    //   returnObj.results[i].date = final_date;
-    // };
+    // console.log('here is return Obj', returnObj);
 
     res.status(200).json(returnObj);
   } catch (error) {
@@ -388,7 +378,7 @@ router.get('/metadata', (req, res) => {
     returnObj.recommend =recommendObj;
     returnObj.characteristics = charsArr;
 
-    // console.log(returnObj);
+    console.log(returnObj);
 
     res.status(200).json(returnObj);
     })
