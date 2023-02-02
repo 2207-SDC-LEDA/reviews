@@ -290,31 +290,53 @@ router.get('/', async (req, res) => {
 
 
 router.post('/', async (req, res) => {
-
-  const lastReview = await ProductReviews.findOne().sort({review_id: -1});
-  const newReviewId = lastReview.review_id + 1;
-
-  const reviewObj = new ProductReviews({
-    product: req.body.product_id,
-    results: [{
-      review_id: newReviewId,
-      rating: req.body.rating,
-      summary: req.body.summary,
-      recommend: req.body.recommend,
-      body: req.body.body,
-      date: new Date(),
-      reviewer_name: req.body.name,
-      photos: req.body.photos,
-      characteristics: req.body.characteristics
-    }]
+  var lastReviewId = null;
+  await ProductReviews.findOne().sort({'results.review_id': -1}).select('results.review_id').exec(function(err, review) {
+    if (err) {
+      console.log(err);
+    } else {
+      lastReviewId = review ? review.results[0].review_id + 1 : 1;
+      console.log(lastReviewId);
+    }
   });
-  try {
-    const savedReview = await reviewObj.save();
-    res.status(201).json(savedReview);
-  } catch (err) {
-    res.status(500).json({ message: 'Adding a new review encountered an error' });
-}
+
+  const characteristicsArray = Object.entries(req.body.characteristics).map(([charId, value]) => ({
+    name: '',
+    id: '',
+    charId: Number(charId),
+    value
+  }));
+
+  const newReview = {
+    review_id: lastReviewId,
+    rating: req.body.rating,
+    summary: req.body.summary,
+    recommend: req.body.recommend,
+    reported: 'null',
+    response: '',
+    body: req.body.body,
+    date: new Date().toISOString(),
+    reviewer_name: req.body.name,
+    helpfulness: 0,
+    photos: req.body.photos,
+    characteristics: characteristicsArray
+  };
+
+  const product = await ProductReviews.findOne({ product: req.body.product_id });
+  if (!product) {
+    const reviewObj = new ProductReviews({
+      product: req.body.product_id,
+      results: [newReview]
+    });
+    await reviewObj.save();
+  } else {
+    product.results.push(newReview);
+    await product.save();
+  }
+
+  res.send(newReview);
 });
+
 
 router.get('/metadata', (req, res) => {
   const product_id = req.query.product_id || 5;
