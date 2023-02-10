@@ -3,12 +3,12 @@ const router = express.Router();
 const {ProductReviews} = require('../models/reviewsModels.js');
 const csvtojson = require("csvtojson");
 const fs = require('fs');
-const reviewsCSV = "reviews.csv";
+const reviewsCSV = "/Users/briankuzma/Desktop/HR/SDC/reviews.csv";
 const mock = "mock.csv";
-const product = "product.csv";
-const PhotosFile = "reviews_photos.csv";
-const characteristicReviewsCSV = "characteristic_reviews.csv";
-const characteristicCSV = "characteristics.csv";
+const product = "/Users/briankuzma/Desktop/HR/SDC/product.csv";
+const PhotosFile = "/Users/briankuzma/Desktop/HR/SDC/reviews_photos.csv";
+const characteristicReviewsCSV = "/Users/briankuzma/Desktop/HR/SDC/characteristic_reviews.csv";
+const characteristicCSV = "/Users/briankuzma/Desktop/HR/SDC/characteristics.csv";
 const csv = require('csv-parser');
 
 
@@ -130,6 +130,11 @@ router.post('/addReview', async (req, res) => {
       row._10 = null;
     }
 
+    row._3;
+    var timestamp = Number(row._3);
+    var date = new Date(timestamp);
+    var finalDate = date.toISOString().slice(0, -1) + "0Z";
+
   var productID = row._1;
   var review = {
     "review_id": reviewIdNum,
@@ -139,7 +144,7 @@ router.post('/addReview', async (req, res) => {
     "reported": row._7,
     "response": row._10,
     "body": row._5,
-    "date": row._3,
+    "date": finalDate,
     "reviewer_name": row._9,
     "helpfulness": reviewHelpfulessNum,
     "photos": []
@@ -266,65 +271,135 @@ router.get('/', async (req, res) => {
   const count = req.query.count || 5;
   const sort = req.query.sort || 'newest';
 
-  ProductReviews.find({ product: product_id }, null, { sort: { 'results.date': -1 } })
-  .then(data => {
-    var currentDataobj = data[0];
-    delete currentDataobj._id;
-    delete currentDataobj.__v;
-    currentDataobj.results = currentDataobj.results.map(result => {
-      delete result._id;
-      delete result.characteristics;
-      return result;
-    });
-    currentDataobj.page = page;
-    currentDataobj.count = count;
-    console.log(currentDataobj);
-    res.status(200).json(currentDataobj);
-  })
-  .catch(err => {
+  try {
+    const currentDataobj = await ProductReviews.find({ product: product_id }, null, { sort: { 'results.date': -1 } });
+    const returnObj = {};
+    // var ProductsArr = currentDataobj[0].product
+    returnObj.product = currentDataobj[0].product;
+    returnObj.page = Number(page);
+    returnObj.count = Number(5);
+    returnObj.results = currentDataobj[0].results;
+    returnObj.results.splice(count);
+    // console.log('here is return Obj', returnObj);
+
+    res.status(200).json(returnObj);
+  } catch (error) {
     res.status(500).json({ message: 'Error getting reviews' });
-  });
-})
+  }
+});
 
 
 router.post('/', async (req, res) => {
-
-  const lastReview = await ProductReviews.findOne().sort({review_id: -1});
-  const newReviewId = lastReview.review_id + 1;
-
-  const reviewObj = new ProductReviews({
-    product: req.body.product_id,
-    results: [{
-      review_id: newReviewId,
-      rating: req.body.rating,
-      summary: req.body.summary,
-      recommend: req.body.recommend,
-      body: req.body.body,
-      date: new Date(),
-      reviewer_name: req.body.name,
-      photos: req.body.photos,
-      characteristics: req.body.characteristics
-    }]
+  var lastReviewId = null;
+  await ProductReviews.findOne().sort({'results.review_id': -1}).select('results.review_id').exec(function(err, review) {
+    if (err) {
+      console.log(err);
+    } else {
+      lastReviewId = review ? review.results[0].review_id + 1 : 1;
+      console.log(lastReviewId);
+    }
   });
-  try {
-    const savedReview = await reviewObj.save();
-    res.status(201).json(savedReview);
-  } catch (err) {
-    res.status(500).json({ message: 'Adding a new review encountered an error' });
-}
+
+  const characteristicsArray = Object.entries(req.body.characteristics).map(([charId, value]) => ({
+    name: '',
+    id: '',
+    charId: Number(charId),
+    value
+  }));
+
+  const newReview = {
+    review_id: lastReviewId,
+    rating: req.body.rating,
+    summary: req.body.summary,
+    recommend: req.body.recommend,
+    reported: 'null',
+    response: '',
+    body: req.body.body,
+    date: new Date().toISOString(),
+    reviewer_name: req.body.name,
+    helpfulness: 0,
+    photos: req.body.photos,
+    characteristics: characteristicsArray
+  };
+
+  const product = await ProductReviews.findOne({ product: req.body.product_id });
+    product.results.push(newReview);
+    await product.save();
+
+  res.status(201).json(newReview);
 });
 
-// router.get('/metadata', (req, res) => {
-//   const product_id = req.query.product_id;
 
-//GET METADATA
-//     .then(data => {
-//       res.status.(200)json(data);
-//     })
-//     .catch(err => {
-//       res.status(500).json({ message: 'MetaData had an error in retrieval' });
-//     });
-// });
+router.get('/metadata', (req, res) => {
+  const product_id = req.query.product_id || 5;
+  ProductReviews.find({ product: product_id })
+    .then(response => {
+      var resultsArr = response[0].results;
+      // console.log('here is results arr', resultsArr)
+      var rawCharsArr = [];
+      var ratingsObj ={
+        0: 0,
+        1: 0,
+        2: 0,
+        3: 0,
+        4: 0,
+        5: 0
+      };
+
+      var recommendObj ={
+        0: 0,
+        1: 0
+      };
+
+      for (var i = 0; i < resultsArr.length; i++) {
+        resultsArr[i].characteristics.forEach(element => {
+          rawCharsArr.push(element);
+        });
+        var currentRating = resultsArr[i].rating;
+        ratingsObj[currentRating] += 1;
+        if (resultsArr[i].recommend === true){
+          recommendObj[1] += 1;
+        } else {
+          recommendObj[0] += 1;
+        }
+      };
+    // console.log('here is raw charsArr', rawCharsArr)
+    charsArr = {}
+    for (var i = 0; i < rawCharsArr.length; i++) {
+      if (charsArr[rawCharsArr[i].name] === undefined ) {
+        charsArr[rawCharsArr[i].name] = {};
+        charsArr[rawCharsArr[i].name].id = rawCharsArr[i].id;
+        charsArr[rawCharsArr[i].name].valCount = 1;
+        charsArr[rawCharsArr[i].name].value = rawCharsArr[i].value;
+      }
+      else {
+        charsArr[rawCharsArr[i].name].valCount += 1;
+        charsArr[rawCharsArr[i].name].value += rawCharsArr[i].value;
+      }
+    }
+    for (var key in charsArr) {
+      var count = charsArr[key].valCount;
+      var val = charsArr[key].value;
+      charsArr[key].value = val/count;
+      delete charsArr[key].valCount;
+    }
+
+    // console.log('cleaned up charsArr', charsArr);
+
+    var returnObj = {};
+    returnObj.product_id = response[0].product
+    returnObj.ratings = ratingsObj;
+    returnObj.recommend =recommendObj;
+    returnObj.characteristics = charsArr;
+
+    console.log(returnObj);
+
+    res.status(200).json(returnObj);
+    })
+    .catch(err => {
+      res.status(500).json({ message: 'MetaData had an error in retrieval' });
+    });
+});
 
 
 router.put('/helpful', async (req, res) => {

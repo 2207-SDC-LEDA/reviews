@@ -1,27 +1,13 @@
 const mongoose =require('mongoose');
 
 
-// const reviewSchema = new mongoose.Schema({
-//   review_id: Number,
-//   rating: Number,
-//   summary: String,
-//   recommend: String,
-//   reported: String,
-//   response: String,
-//   body: String,
-//   date: String,
-//   reviewer_name: String,
-//   helpfulness: Number,
-//   photos: []
-// });
-
 const productReviewsSchema = new mongoose.Schema({
   product: { type: String, index: true },
   results: [{
       review_id: { type: Number, index: true },
       rating: Number,
       summary: String,
-      recommend: String,
+      recommend: Boolean,
       reported: String,
       response: String,
       body: String,
@@ -32,6 +18,25 @@ const productReviewsSchema = new mongoose.Schema({
       characteristics: [{name: String, id: { type: Number, index: true }, charId: Number, value: Number}]
     }]
 });
+
+// const productReviewsSchema = new mongoose.Schema({
+//     product: String,
+//     results: [{
+//         review_id: Number,
+//         rating: Number,
+//         summary: String,
+//         recommend: Boolean,
+//         reported: String,
+//         response: String,
+//         body: String,
+//         date: String,
+//         reviewer_name: String,
+//         helpfulness: Number,
+//         photos: [{id: Number, url: String}],
+//         characteristics: [{name: String, id: Number, charId: Number, value: Number}]
+//       }]
+//   });
+
 
 // const photosIdSchema = new mongoose.Schema({
 //   review_id: { type: Number, index: true, unique: true },
