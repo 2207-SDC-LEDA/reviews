@@ -3,7 +3,7 @@ import { sleep, check } from 'k6';
 import { randomIntBetween } from 'https://jslib.k6.io/k6-utils/1.2.0/index.js';
 
 export const options = {
-  vus: 1,
+  vus: 500,
   duration: '20s',
 };
 export default function () {
@@ -11,18 +11,18 @@ export default function () {
     return Math.floor(Math.random() * (max - min + 1) + min)
   };
 
-  const rndInt = randomIntFromInterval(1, 100)
+  const rndInt = randomIntFromInterval(900000, 1000000)
     // http.get(`http://localhost:3000/reviews`);
-    // http.get(`http://localhost:3000/reviews?product_id=${rndInt}`);
-    // http.put(`http://localhost:3000/reviews/helpful?review_id=${rndInt}`)
+    // let res = http.get(`http://localhost:3000/reviews?product_id=${rndInt}`);
+    // let res = http.put(`http://localhost:3000/reviews/helpful?review_id=${rndInt}`)
 
       let reviewObj = {
       product_id: 1,
       rating: 4,
       summary: "Great product!",
       recommend: true,
-      body: "I love this product and would recommend it to anyone.",
-      name: "John Doe",
+      body: "I LOVE THIS.",
+      name: "Chonky",
       photos: [],
       characteristics: []
       };
@@ -33,12 +33,12 @@ export default function () {
       }
       });
 
-      check(res, {
-      "status is 201": (r) => r.status === 201,
-      "response is not empty": (r) => r.body.length > 0
-      });
-// GET http://localhost:3000/reviews/metadata
-// ###
+      // var res = http.get(`http://localhost:3000/reviews/metadata?product_id=${rndInt}`)
+
+      // check(res, {
+      // "status is 201": (r) => r.status === 201,
+      // "response is not empty": (r) => r.body.length > 0
+      // });
 
 
   sleep(1);

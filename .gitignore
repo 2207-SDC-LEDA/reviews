@@ -1,2 +1,5 @@
 node_modules
 .env
+test
+Dockerfile
+docker-compose.yml

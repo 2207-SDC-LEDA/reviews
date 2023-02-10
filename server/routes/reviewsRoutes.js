@@ -323,18 +323,10 @@ router.post('/', async (req, res) => {
   };
 
   const product = await ProductReviews.findOne({ product: req.body.product_id });
-  if (!product) {
-    const reviewObj = new ProductReviews({
-      product: req.body.product_id,
-      results: [newReview]
-    });
-    await reviewObj.save();
-  } else {
     product.results.push(newReview);
     await product.save();
-  }
 
-  res.send(newReview);
+  res.status(201).json(newReview);
 });
 
 
