@@ -16,7 +16,7 @@ const reviewsRouter = require('./routes/reviewsRoutes.js');
 app.use('/reviews', reviewsRouter);
 
 app.get('/loaderio-6be31662ca1cc338641da78c52c13b86.txt', (req, res) => {
-  res.status(200).download('../loaderio-6be31662ca1cc338641da78c52c13b86.txt')
+  res.status(200).download('./loaderio-6be31662ca1cc338641da78c52c13b86.txt')
 })
 
 app.listen(port, () => {
