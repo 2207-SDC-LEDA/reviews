@@ -10,7 +10,15 @@ const PhotosFile = "/Users/briankuzma/Desktop/HR/SDC/reviews_photos.csv";
 const characteristicReviewsCSV = "/Users/briankuzma/Desktop/HR/SDC/characteristic_reviews.csv";
 const characteristicCSV = "/Users/briankuzma/Desktop/HR/SDC/characteristics.csv";
 const csv = require('csv-parser');
+const redis = require('redis');
 
+const client = redis.createClient();
+
+  client
+    .connect()
+    .then((res) => {
+      console.log('connected to redis!');
+    });
 
 router.post('/addProductIds', async (req, res) => {
 
@@ -271,19 +279,28 @@ router.get('/', async (req, res) => {
   const count = req.query.count || 5;
   const sort = req.query.sort || 'newest';
 
+  const prodString = product_id.toString();
+  let isCached = false;
   try {
-    const currentDataobj = await ProductReviews.find({ product: product_id }, null, { sort: { 'results.date': -1 } });
-    const returnObj = {};
-    // var ProductsArr = currentDataobj[0].product
-    returnObj.product = currentDataobj[0].product;
-    returnObj.page = Number(page);
-    returnObj.count = Number(5);
-    returnObj.results = currentDataobj[0].results;
-    returnObj.results.splice(count);
-    // console.log('here is return Obj', returnObj);
+    const cacheResults = await client.get(prodString);
+    if (cacheResults) {
+      isCached = true;
+      results = JSON.parse(cacheResults);
+      res.status(200).json(results);
+    } else {
+      const currentDataobj = await ProductReviews.find({ product: product_id }, null, { sort: { 'results.date': -1 } });
+      const returnObj = {};
+      returnObj.product = currentDataobj[0].product;
+      returnObj.page = Number(page);
+      returnObj.count = Number(count);
+      returnObj.results = currentDataobj[0].results.slice(0, count);
 
-    res.status(200).json(returnObj);
+      await client.set(prodString, JSON.stringify(returnObj), 'EX', 60*60*24*30);
+      res.status(200).json(returnObj);
+
+    }
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: 'Error getting reviews' });
   }
 });

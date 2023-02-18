@@ -32,10 +32,12 @@
     "express": "^4.18.2",
     "fast-csv": "^4.3.6",
     "hono": "^2.7.3",
+    "ioredis": "^5.3.1",
     "k6": "^0.0.0",
     "mongoose": "^6.8.3",
     "newrelic": "^9.8.1",
-    "postgres": "^3.3.3"
+    "postgres": "^3.3.3",
+    "redis": "^4.6.4"
   },
   "devDependencies": {
     "dotenv": "^16.0.3",
