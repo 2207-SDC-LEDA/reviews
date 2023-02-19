@@ -4,7 +4,7 @@ const app = express()
 const port = 3000;
 const mongoose = require("mongoose");
 
-mongoose.connect(process.env.dbURL, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect('mongodb://54.202.59.41:27017/test', { useNewUrlParser: true, useUnifiedTopology: true });
 
 const db = mongoose.connection;
 db.on('error', (error)=>console.error(error));
@@ -15,8 +15,8 @@ app.use(express.json());
 const reviewsRouter = require('./routes/reviewsRoutes.js');
 app.use('/reviews', reviewsRouter);
 
-app.get('/loaderio-6be31662ca1cc338641da78c52c13b86.txt', (req, res) => {
-  res.status(200).download('./loaderio-6be31662ca1cc338641da78c52c13b86.txt')
+app.get('/loaderio-ebdfaa65115e9cd291cefc1692966416.txt', (req, res) => {
+  res.status(200).download('./loaderio-ebdfaa65115e9cd291cefc1692966416.txt')
 })
 
 app.listen(port, () => {
