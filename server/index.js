@@ -4,7 +4,7 @@ const app = express()
 const port = 3000;
 const mongoose = require("mongoose");
 
-mongoose.connect('mongodb://54.202.59.41:27017/test', { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect('mongodb://35.86.250.116:27017', { useNewUrlParser: true, useUnifiedTopology: true });
 
 const db = mongoose.connection;
 db.on('error', (error)=>console.error(error));

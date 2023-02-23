@@ -20,6 +20,8 @@ const client = redis.createClient();
       console.log('connected to redis!');
     });
 
+  client.subscribe('sdcreviewschannel');
+
 router.post('/addProductIds', async (req, res) => {
 
   var data = [];
@@ -339,6 +341,15 @@ router.post('/', async (req, res) => {
     characteristics: characteristicsArray
   };
 
+  await client.hdel('product_id:' + req.body.product_id, keyToDelete, function(err, reply) {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log('Deleted successfully!');
+      client.publish('sdcreviewschannel', JSON.stringify({ key: 'product_id', action: 'delete' }));
+    }
+  });
+
   const product = await ProductReviews.findOne({ product: req.body.product_id });
     product.results.push(newReview);
     await product.save();
@@ -421,6 +432,15 @@ router.get('/metadata', (req, res) => {
 
 router.put('/helpful', async (req, res) => {
   const review_id = req.query.review_id || 1;
+
+  await client.hdel('product_id:' + req.body.product_id, keyToDelete, function(err, reply) {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log('Deleted successfully!');
+      client.publish('sdcreviewschannel', JSON.stringify({ key: 'product_id', action: 'delete' }));
+    }
+  });
 
     ProductReviews.updateOne({ "results.review_id": review_id }, { $inc: { "results.$.helpfulness": 1 } }, {new: true})
     .then(response => {
